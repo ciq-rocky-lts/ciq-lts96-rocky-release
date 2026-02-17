@@ -17,19 +17,19 @@
 %define variant_lowercase server
 
 # Distribution Name and Version
-%define distro_name  Rocky Linux
+%define distro_name  Rocky Linux from CIQ - LTS
 %define distro       %{distro_name}
 %define distro_code  Blue Onyx
 %define major        9
 %define minor        6
-%define rocky_rel    2%{?rllh:.%{rllh}}%{!?rllh:.4}
+%define rocky_rel    3%{?rllh:.%{rllh}}%{!?rllh:.5}
 %define rpm_license  BSD-3-Clause
 %define dist         .el%{major}_%{minor}
-%define home_url     https://rockylinux.org/
-%define bug_url      https://bugs.rockylinux.org/
+%define home_url     https://portal.ciq.com/
+%define bug_url      https://support.ciq.com/
 %define debug_url    https://debuginfod.rockylinux.org/
-%define dist_vendor  RESF
-%define vendor_url   https://resf.org/
+%define dist_vendor  CIQ
+%define vendor_url   https://ciq.com/
 
 %define name_prefix  ciq-lts%{major}%{minor}-
 
@@ -42,8 +42,8 @@
 %define cloudcontentdir /public/files
 %define product         /lts-%{full_release_version}
 
-%define os_bug_name  Rocky-Linux-%{major}
-%define support_end  2032-05-31
+%define os_bug_name  Rocky-Linux-%{major}.%{minor}
+%define support_end  2029-11-30
 
 ################################################################################
 # Rocky LookAhead Section
@@ -126,7 +126,7 @@ Provides:       redhat-release-eula = %{version}-%{release}
 Provides:       centos-release-eula = %{version}-%{release}
 
 # What are our requirements?
-Requires:       %{name_prefix}rocky-repos(%{major})
+Requires:       %{name_prefix}rocky-gpg-keys%{?rltype}
 Obsoletes:      rocky-release < 10.0
 Conflicts:      rocky-release
 
@@ -223,7 +223,6 @@ Provides:       system-repos = %{version}-%{release}
 Provides:       %{name_prefix}rocky-repos(%{major}) = %{full_release_version}
 Provides:       rocky-repos(%{major}) = %{full_release_version}
 Requires:       system-release = %{version}-%{release}
-Requires:       %{name_prefix}rocky-gpg-keys%{?rltype}
 Conflicts:      %{name} < 8.0
 
 Conflicts:      rocky-repos
@@ -256,7 +255,6 @@ Provides:       system-repos = %{version}-%{release}
 Provides:       %{name_prefix}rocky-repos(%{major}) = %{full_release_version}
 Provides:       rocky-repos(%{major}) = %{full_release_version}
 Requires:       system-release = %{version}-%{release}
-Requires:       %{name_prefix}rocky-gpg-keys%{?rltype}
 Requires:       python3-rlc-cloud-repos
 Conflicts:      %{name} < 8.0
 
@@ -341,13 +339,13 @@ cat > %{buildroot}%{_prefix}/lib/os-release << EOF
 NAME="%{distro_name}"
 VERSION="%{full_release_version} (%{distro_code})"
 ID="%{rlosid}"
-ID_LIKE="rhel centos fedora"
+ID_LIKE="rocky rhel centos fedora"
 VERSION_ID="%{full_release_version}"
 PLATFORM_ID="platform:el%{major}"
 PRETTY_NAME="%{distro_name} %{full_release_version}%{?rlstatement: %{rlstatement}} (%{distro_code})"
 ANSI_COLOR="0;32"
 LOGO="fedora-logo-icon"
-CPE_NAME="cpe:/o:rocky:rocky:%{major}::baseos"
+CPE_NAME="cpe:2.3:o:ciq:rocky_linux_from_ciq_lts:9.6"
 HOME_URL="%{home_url}"
 VENDOR_NAME="%{dist_vendor}"
 VENDOR_URL="%{vendor_url}"
@@ -363,7 +361,7 @@ EOF
 ln -s ../usr/lib/os-release %{buildroot}%{_sysconfdir}/os-release
 
 # write cpe to /etc/system/release-cpe
-echo "cpe:/o:rocky:rocky:%{major}::baseos" > %{buildroot}%{_sysconfdir}/system-release-cpe
+echo "cpe:2.3:o:ciq:rocky_linux_from_ciq_lts:9.6" > %{buildroot}%{_sysconfdir}/system-release-cpe
 
 # create /etc/issue and /etc/issue.net, /etc/issue.d
 echo '\S' > %{buildroot}%{_sysconfdir}/issue
@@ -524,7 +522,6 @@ install -p -m 0644 %{SOURCE1250} %{buildroot}%{_sysconfdir}/yum.repos.d/
 
 # dnf stuff
 install -d -m 0755 %{buildroot}%{_sysconfdir}/dnf/vars
-echo "%{full_release_version}" > %{buildroot}%{_sysconfdir}/dnf/vars/releasever
 echo "%{contentdir}" > %{buildroot}%{_sysconfdir}/dnf/vars/contentdir
 echo "%{sigcontent}" > %{buildroot}%{_sysconfdir}/dnf/vars/sigcontentdir
 echo "%{?rltype}" > %{buildroot}%{_sysconfdir}/dnf/vars/rltype
@@ -585,7 +582,6 @@ install -m 0644 %{SOURCE404} %{buildroot}/%{_prefix}/lib/sysctl.d/50-redhat.conf
 %config(noreplace) %{_sysconfdir}/yum.repos.d/rocky-addons.repo
 %config(noreplace) %{_sysconfdir}/yum.repos.d/rocky-extras.repo
 %config(noreplace) %{_sysconfdir}/yum.repos.d/rocky-devel.repo
-%config(noreplace) %{_sysconfdir}/dnf/vars/releasever
 %config(noreplace) %{_sysconfdir}/dnf/vars/contentdir
 %config(noreplace) %{_sysconfdir}/dnf/vars/sigcontentdir
 %config(noreplace) %{_sysconfdir}/dnf/vars/rltype
@@ -594,7 +590,6 @@ install -m 0644 %{SOURCE404} %{buildroot}/%{_prefix}/lib/sysctl.d/50-redhat.conf
 %files -n %{name_prefix}rocky-cloud-repos%{?rltype}
 %license docs/LICENSE
 %config(noreplace) %{_sysconfdir}/yum.repos.d/lts-cloud.repo
-%config(noreplace) %{_sysconfdir}/dnf/vars/releasever
 %config(noreplace) %{_sysconfdir}/dnf/vars/contentdir
 %config(noreplace) %{_sysconfdir}/dnf/vars/sigcontentdir
 %config(noreplace) %{_sysconfdir}/dnf/vars/rltype
@@ -630,6 +625,16 @@ if [ "$1" = "0" ]; then
 fi
 
 %changelog
+* Tue Feb 03 2026 Skip Grube <sgrube@ciq.com> - 9.6-3.5
+- Drop stock .repo files in favor of Depot management
+- Specify minor version 9.6 support for CPE LTS product string
+- Update vendor and support info
+
+* Wed Jul 23 2025 Trinity Quirk <tquirk@ciq.com> - 9.6-3.4
+- Drop LTS-specific releasever variable (LE-3609)
+- Move dependency on GPG keys subpackage to main package (LE-3610)
+- Drop dependency on -repos subpackages from main package (LE-3610)
+
 * Sat Jun 21 2025 Joseph Tate <jtate@ciq.com> - 9.6-2.4
 - Add support for AWS Cloud Mirroring
   (when combined with rlc-cloud-repos v0.2.1)
